@@ -1,0 +1,29 @@
+[build]
+  # Where Netlify runs its build command from
+  base = "node-api"
+  # Install dependencies before deploying
+  command = "npm install"
+  # Netlify Functions directory (relative to base)
+  functions = "netlify/functions"
+  # No static publish dir — this is API only
+  publish = "public"
+
+[functions]
+  # Bundle each function with its Node dependencies using esbuild
+  node_bundler = "esbuild"
+  # Include native addons if needed (none now, but good practice)
+  included_files = []
+
+# Rewrite /api/* → the Netlify Function so callers use clean URLs
+# The function receives the full original URL path, so Express routing works as-is
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+# Health-check convenience redirect
+[[redirects]]
+  from = "/"
+  to = "/api/health"
+  status = 302
