@@ -9,10 +9,8 @@
   publish = "public"
 
 [functions]
-  # Bundle each function with its Node dependencies using esbuild
+  # Bundle all dependencies inline with esbuild — no native binaries needed
   node_bundler = "esbuild"
-  # Include native addons if needed (none now, but good practice)
-  included_files = []
 
 # Rewrite /api/* → the Netlify Function so callers use clean URLs
 # The function receives the full original URL path, so Express routing works as-is

@@ -1,4 +1,6 @@
-const { createClient } = require('@libsql/client');
+// Use the pure-JS HTTP client — no native binaries, works on any OS/serverless.
+// Requires a remote Turso HTTPS URL (set TURSO_DATABASE_URL + TURSO_AUTH_TOKEN).
+const { createClient } = require('@libsql/client/web');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
