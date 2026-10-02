@@ -1,14 +1,28 @@
 // Use the pure-JS HTTP client — no native binaries, works on any OS/serverless.
-// Requires a remote Turso HTTPS URL (set TURSO_DATABASE_URL + TURSO_AUTH_TOKEN).
+// Requires a remote Turso HTTPS/libsql URL (set TURSO_DATABASE_URL + TURSO_AUTH_TOKEN).
 const { createClient } = require('@libsql/client/web');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
-// Turso: set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in your environment.
-// For local dev you can use a local file: file:./database.db
-const db = createClient({
-  url: process.env.TURSO_DATABASE_URL || 'file:./database.db',
-  authToken: process.env.TURSO_AUTH_TOKEN,
+// Lazy DB client — created on first use so the module loads cleanly
+// even if TURSO_DATABASE_URL is not yet set (e.g. /api/health still works).
+let _db = null;
+function getDb() {
+  if (!_db) {
+    const url = process.env.TURSO_DATABASE_URL;
+    if (!url) {
+      throw new Error('TURSO_DATABASE_URL environment variable is not set. Please add it in your Netlify site settings.');
+    }
+    _db = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
+  }
+  return _db;
+}
+
+// Proxy that forwards property access to the lazy client
+const db = new Proxy({}, {
+  get(_, prop) {
+    return getDb()[prop];
+  },
 });
 
 async function initializeDatabase() {

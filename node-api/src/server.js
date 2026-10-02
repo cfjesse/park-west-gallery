@@ -10,23 +10,31 @@ const inventoryRoutes = require('./routes/inventory');
 
 const app = express();
 
-// Initialise DB once. In serverless, this runs on cold start.
+// Initialise DB once per cold start — only if TURSO_DATABASE_URL is configured.
+// Routes that don't need a DB (e.g. /api/health) work without it.
 let dbReady = false;
-async function ensureDb() {
-  if (!dbReady) {
-    await initializeDatabase();
-    dbReady = true;
+async function ensureDb(req, res, next) {
+  // Skip DB init for health check
+  if (req.path === '/api/health' || req.path === '/health') {
+    return next();
   }
-}
-
-app.use(async (req, res, next) => {
+  if (!process.env.TURSO_DATABASE_URL) {
+    return res.status(503).json({
+      error: 'Database not configured. Set TURSO_DATABASE_URL in your Netlify environment variables.',
+    });
+  }
   try {
-    await ensureDb();
+    if (!dbReady) {
+      await initializeDatabase();
+      dbReady = true;
+    }
     next();
   } catch (err) {
     next(err);
   }
-});
+}
+
+app.use(ensureDb);
 
 app.use(helmet());
 
