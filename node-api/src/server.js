@@ -11,18 +11,9 @@ const inventoryRoutes = require('./routes/inventory');
 const app = express();
 
 // Initialise DB once per cold start — only if TURSO_DATABASE_URL is configured.
-// Routes that don't need a DB (e.g. /api/health) work without it.
+// Initialise DB once per cold start (lazy — runs on first non-health request).
 let dbReady = false;
 async function ensureDb(req, res, next) {
-  // Skip DB init for health check
-  if (req.path === '/api/health' || req.path === '/health') {
-    return next();
-  }
-  if (!process.env.TURSO_DATABASE_URL) {
-    return res.status(503).json({
-      error: 'Database not configured. Set TURSO_DATABASE_URL in your Netlify environment variables.',
-    });
-  }
   try {
     if (!dbReady) {
       await initializeDatabase();
@@ -43,6 +34,8 @@ app.use(helmet());
 const allowedOrigins = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+  /^https:\/\/park-west-gallery\.netlify\.app$/,
+  /^https:\/\/.*--park-west-gallery\.netlify\.app$/,
 ];
 if (process.env.ALLOWED_ORIGIN) {
   allowedOrigins.push(process.env.ALLOWED_ORIGIN);

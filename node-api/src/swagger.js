@@ -246,6 +246,37 @@ const options = {
           },
         },
       },
+      '/inventory/all': {
+        get: {
+          tags: ['Inventory'],
+          summary: 'Retrieve all inventory items (unpaginated)',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: 'status', in: 'query', schema: { type: 'string', enum: ['sold', 'pending', 'ready_for_sale'] }, description: 'Filter by status' },
+            { name: 'media', in: 'query', schema: { type: 'string', enum: ['acrylic', 'oils', 'pastel', 'charcoal', 'pencil', 'mixed_media', 'watercolor', 'gouache', 'ink', 'digital'] }, description: 'Filter by media' },
+            { name: 'style', in: 'query', schema: { type: 'string', enum: ['abstract', 'realism', 'impressionism', 'surrealism', 'art_deco', 'expressionism', 'cubism', 'minimalism', 'pop_art', 'baroque'] }, description: 'Filter by style' },
+            { name: 'artist_name', in: 'query', schema: { type: 'string' }, description: 'Partial match on artist name' },
+          ],
+          responses: {
+            200: {
+              description: 'Full list of all inventory items',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      total: { type: 'integer', example: 200 },
+                      data: { type: 'array', items: { $ref: '#/components/schemas/InventoryItem' } },
+                    },
+                  },
+                },
+              },
+            },
+            400: { description: 'Invalid query parameters', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+            401: { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+          },
+        },
+      },
       '/inventory/{id}': {
         get: {
           tags: ['Inventory'],
@@ -264,7 +295,7 @@ const options = {
         put: {
           tags: ['Inventory'],
           summary: 'Update an inventory item (partial update supported)',
-          description: 'Roles allowed: `accountant`, `inventory_specialist`',
+          description: 'Roles allowed: `accountant`, `inventory_specialist`, `customer` (customer may only send `{ "status": "pending" }` on an item that is `ready_for_sale`)',
           security: [{ bearerAuth: [] }],
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
           requestBody: {

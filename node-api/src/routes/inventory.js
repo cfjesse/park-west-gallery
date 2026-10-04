@@ -123,6 +123,53 @@ router.get('/', authenticateToken, async (req, res) => {
   });
 });
 
+/**
+ * GET /api/inventory/all
+ * Retrieve all inventory records without pagination
+ */
+router.get('/all', authenticateToken, async (req, res) => {
+  const { status, media, style, artist_name } = req.query;
+  const conditions = [];
+  const params = [];
+
+  if (status) {
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ error: `status filter must be one of: ${VALID_STATUSES.join(', ')}.` });
+    }
+    conditions.push('status = ?');
+    params.push(status);
+  }
+  if (media) {
+    if (!VALID_MEDIA.includes(media)) {
+      return res.status(400).json({ error: `media filter must be one of: ${VALID_MEDIA.join(', ')}.` });
+    }
+    conditions.push('media = ?');
+    params.push(media);
+  }
+  if (style) {
+    if (!VALID_STYLES.includes(style)) {
+      return res.status(400).json({ error: `style filter must be one of: ${VALID_STYLES.join(', ')}.` });
+    }
+    conditions.push('style = ?');
+    params.push(style);
+  }
+  if (artist_name) {
+    conditions.push('artist_name LIKE ?');
+    params.push(`%${artist_name}%`);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const { rows: items } = await db.execute({
+    sql: `SELECT * FROM inventory ${where} ORDER BY created_at DESC`,
+    args: params,
+  });
+
+  return res.status(200).json({
+    total: items.length,
+    data: items,
+  });
+});
+
 router.get('/:id', authenticateToken, async (req, res) => {
   const { rows } = await db.execute({ sql: 'SELECT * FROM inventory WHERE id = ?', args: [req.params.id] });
   if (!rows[0]) {
@@ -158,11 +205,22 @@ router.post(
 router.put(
   '/:id',
   authenticateToken,
-  requireRole('accountant', 'inventory_specialist'),
+  requireRole('accountant', 'inventory_specialist', 'customer'),
   async (req, res) => {
     const { rows: existingRows } = await db.execute({ sql: 'SELECT * FROM inventory WHERE id = ?', args: [req.params.id] });
     if (!existingRows[0]) {
       return res.status(404).json({ error: 'Item not found.' });
+    }
+
+    // Customers may only submit a purchase request: { status: 'pending' } on an item that is ready_for_sale.
+    if (req.user.role === 'customer') {
+      const keys = Object.keys(req.body || {});
+      if (keys.length !== 1 || keys[0] !== 'status' || req.body.status !== 'pending') {
+        return res.status(403).json({ error: 'Customers may only submit a purchase request ({ status: "pending" }).' });
+      }
+      if (existingRows[0].status !== 'ready_for_sale') {
+        return res.status(409).json({ error: 'This item is not available for purchase.' });
+      }
     }
 
     const errors = validateInventoryBody(req.body, false);

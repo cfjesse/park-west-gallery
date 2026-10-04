@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { db } = require('../database');
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'park-west-secure-jwt-secret-key-2026';
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -28,7 +29,7 @@ router.post('/login', async (req, res) => {
       username: user.username,
       role: user.role,
     },
-    process.env.JWT_SECRET,
+    JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
   );
 
