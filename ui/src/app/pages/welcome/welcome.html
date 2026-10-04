@@ -1,0 +1,27 @@
+<div class="container">
+  <div class="banner">
+    <img src="/images/banner.webp" alt="Welcome to Park West">
+  </div>
+  <div class="cards">
+    <div class="card-container">
+      <nz-card nzHoverable [nzCover]="coverTemplate1">
+        <nz-card-meta nzTitle="Perks at work" nzDescription="Find out more about employee perks" />
+      </nz-card>
+      <ng-template #coverTemplate1>
+        <div class="color-overlay"><img alt="example" src="/images/perks-at-work.webp" /></div>
+      </ng-template>
+      <nz-card nzHoverable [nzCover]="coverTemplate2">
+        <nz-card-meta nzTitle="Employee Benefits" nzDescription="Find out more about employee benefits" />
+      </nz-card>
+      <ng-template #coverTemplate2>
+        <div class="color-overlay"><img alt="example" src="/images/benefits.webp" /></div>
+      </ng-template>
+      <nz-card nzHoverable [nzCover]="coverTemplate3">
+        <nz-card-meta nzTitle="Help Desk" nzDescription="Create a help desk ticket" />
+      </nz-card>
+      <ng-template #coverTemplate3>
+        <div class="color-overlay"><img alt="example" src="/images/help-desk.webp" /></div>
+      </ng-template>
+    </div>
+  </div>
+</div>

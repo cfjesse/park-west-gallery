@@ -1,0 +1,216 @@
+<nz-table #basicTable [nzData]="inventory()" [nzFrontPagination]="false" [nzLoading]="isLoading()"
+  [nzTotal]="total()" [nzPageIndex]="pageIndex()" [nzPageSize]="pageSize()" [nzShowSizeChanger]="true"
+  [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
+  (nzPageSizeChange)="onPageSizeChange($event)">
+  <thead>
+    <tr>
+      <th>Artist</th>
+      <th>Title</th>
+      <th>Status</th>
+      <th>Medium</th>
+      <th>Style</th>
+      <th>Price</th>
+      @if (userRole === 'accountant') {
+      <th>Discount</th>
+      }
+      <th>Size</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (data of basicTable.data; track data.id) {
+    <tr>
+      <td>{{ data.artist_name }}</td>
+      <td>{{ data.title }}</td>
+      <td>
+        <nz-tag [nzColor]="getStatusColor(data.status)">
+          <nz-icon [nzType]="getStatusIcon(data.status)" />
+          <span>{{ formatLabel(data.status) | titlecase }}</span>
+        </nz-tag>
+      </td>
+      <td>{{ data.media | titlecase }}</td>
+      <td>{{ data.style | titlecase }}</td>
+      <td>{{ data.price | discountedPrice:data.discount_percent | currency }}</td>
+      @if (userRole === 'accountant') {
+      <td>{{ data.discount_percent != null ? data.discount_percent + '%' : '—' }}</td>
+      }
+      <td>{{ data.width_in }} x {{ data.height_in }}</td>
+      <td class="actions">
+        @if (userRole === 'accountant') {
+        <button nz-button (click)="onAction('view', data)">View</button>
+        <button [disabled]="data.status === 'sold'" nz-button (click)="onAction('edit', data)">Edit</button>
+        }
+
+        @if (userRole === 'inventory_specialist') {
+        <button nz-button (click)="onAction('view', data)">View</button>
+        <button [disabled]="data.status === 'sold'" nz-button (click)="onAction('edit', data)">Edit</button>
+        <button [disabled]="data.status === 'sold'" nz-button nzDanger
+          (click)="onAction('delete', data)">Delete</button>
+        }
+
+        @if (userRole === 'customer') {
+        <button nz-button (click)="onAction('view', data)">View</button>
+        <button nz-button nzType="primary" [disabled]="data.status !== 'ready_for_sale'"
+          (click)="onAction('buy', data)">
+          {{ data.status === 'ready_for_sale' ? 'Buy' : 'Unavailable' }}
+        </button>
+        }
+      </td>
+    </tr>
+    }
+  </tbody>
+</nz-table>
+
+<nz-modal [nzVisible]="isModalVisible()" [nzTitle]="modalTitle()" [nzOkText]="okText()"
+  [nzOkDanger]="action() === 'delete'" [nzOkLoading]="isSaving()" [nzOkDisabled]="isOkDisabled()"
+  [nzCancelText]="action() === 'view' ? 'Close' : 'Cancel'" [nzMaskClosable]="!isSaving()" nzWidth="640px"
+  (nzOnCancel)="onModalCancel()" (nzOnOk)="onModalOk()">
+  <ng-container *nzModalContent>
+    @if (modalData(); as item) {
+    @switch (action()) {
+
+    <!-- VIEW -->
+    @case ('view') {
+    <nz-descriptions nzBordered [nzColumn]="2" nzSize="small">
+      <nz-descriptions-item nzTitle="Artist">{{ item.artist_name }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Title">{{ item.title }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Medium">{{ item.media }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Style">{{ item.style }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Size">{{ item.width_in }}" x {{ item.height_in }}"</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Status">
+        <nz-tag [nzColor]="getStatusColor(item.status)">
+          <nz-icon [nzType]="getStatusIcon(item.status)" />
+          <span>{{ formatLabel(item.status) | titlecase }}</span>
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Price">{{ item.price | discountedPrice:item.discount_percent | currency
+        }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Discount">
+        {{ item.discount_percent != null ? item.discount_percent + '%' : '—' }}
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="ID" [nzSpan]="2"><code>{{ item.id }}</code></nz-descriptions-item>
+    </nz-descriptions>
+    }
+
+    <!-- EDIT -->
+    @case ('edit') {
+    @if (userRole === 'accountant') {
+    <form nz-form nzLayout="vertical" [formGroup]="accountantForm" (ngSubmit)="onModalOk()">
+      <nz-form-item>
+        <nz-form-label nzRequired nzFor="edit-price">Price (USD)</nz-form-label>
+        <nz-form-control nzErrorTip="Price must be between $1,000 and $20,000.">
+          <nz-input-number id="edit-price" formControlName="price" [nzMin]="1000" [nzMax]="20000" [nzStep]="100"
+            class="full-width" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzFor="edit-discount">Discount %</nz-form-label>
+        <nz-form-control nzErrorTip="Discount must be a whole number between 0 and 30."
+          nzExtra="Leave empty for no discount.">
+          <nz-input-number id="edit-discount" formControlName="discount_percent" [nzMin]="0" [nzMax]="30" [nzStep]="1"
+            [nzPrecision]="0" class="full-width" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired nzFor="edit-status-acct">Status</nz-form-label>
+        <nz-form-control nzErrorTip="Status is required.">
+          <nz-select id="edit-status-acct" formControlName="status">
+            @for (s of statusOptions; track s) {
+            <nz-option [nzValue]="s" [nzLabel]="s | titlecase" />
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+    }
+
+    @if (userRole === 'inventory_specialist') {
+    <form nz-form nzLayout="vertical" [formGroup]="specialistForm" (ngSubmit)="onModalOk()">
+      <div class="form-grid">
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="edit-artist">Artist</nz-form-label>
+          <nz-form-control nzErrorTip="Artist is required.">
+            <input nz-input id="edit-artist" formControlName="artist_name" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="edit-title">Title</nz-form-label>
+          <nz-form-control nzErrorTip="Title is required.">
+            <input nz-input id="edit-title" formControlName="title" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="edit-media">Medium</nz-form-label>
+          <nz-form-control nzErrorTip="Medium is required.">
+            <nz-select id="edit-media" formControlName="media">
+              @for (m of mediaOptions; track m) {
+              <nz-option [nzValue]="m" [nzLabel]="m | titlecase" />
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="edit-style">Style</nz-form-label>
+          <nz-form-control nzErrorTip="Style is required.">
+            <nz-select id="edit-style" formControlName="style">
+              @for (s of styleOptions; track s) {
+              <nz-option [nzValue]="s" [nzLabel]="s | titlecase" />
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="edit-width">Width (in)</nz-form-label>
+          <nz-form-control nzErrorTip="Width must be a positive number.">
+            <nz-input-number id="edit-width" formControlName="width_in" [nzMin]="1" class="full-width" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="edit-height">Height (in)</nz-form-label>
+          <nz-form-control nzErrorTip="Height must be a positive number.">
+            <nz-input-number id="edit-height" formControlName="height_in" [nzMin]="1" class="full-width" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzRequired nzFor="edit-status-spec">Status</nz-form-label>
+          <nz-form-control nzErrorTip="Status is required.">
+            <nz-select id="edit-status-spec" formControlName="status">
+              @for (s of statusOptions; track s) {
+              <nz-option [nzValue]="s" [nzLabel]="s | titlecase" />
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </form>
+    }
+    }
+
+    <!-- DELETE -->
+    @case ('delete') {
+    <p>
+      Are you sure you want to permanently delete <strong>{{ item.title }}</strong> by
+      <strong>{{ item.artist_name }}</strong>? This cannot be undone.
+    </p>
+    }
+
+    <!-- BUY -->
+    @case ('buy') {
+    <p>
+      Submit a purchase request for <strong>{{ item.title }}</strong> by <strong>{{ item.artist_name }}</strong>?
+    </p>
+    <nz-descriptions nzBordered [nzColumn]="1" nzSize="small">
+      <nz-descriptions-item nzTitle="Price">{{ item.price | currency }}</nz-descriptions-item>
+      @if (item.discount_percent) {
+      <nz-descriptions-item nzTitle="Discount">{{ item.discount_percent }}%</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Your Price">
+        {{ item.price | discountedPrice:item.discount_percent | currency }}
+      </nz-descriptions-item>
+      }
+    </nz-descriptions>
+    <p class="hint">The item will be marked <em>pending</em> until the gallery confirms your purchase.</p>
+    }
+    }
+    }
+  </ng-container>
+</nz-modal>

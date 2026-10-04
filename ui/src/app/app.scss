@@ -1,0 +1,63 @@
+:host {
+  --text-color: white;
+}
+
+nz-header {
+  .flex {
+    display: flex;
+    flex-direction: row;
+    height: max-content;
+    padding: 0 32px;
+  }
+
+  ul {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .nav-link {
+    color: var(--text-color);
+  }
+
+  .logo span {
+    &:hover {
+      cursor: pointer;
+    }
+
+    img {
+      width: 100%;
+    }
+  }
+}
+
+.text-info {
+  font-size: 12px;
+  font-weight: 300;
+  width: 100%;
+  height: 32px;
+  color: white;
+  background-color: #00101f;
+  padding: 6px 80px;
+}
+
+nz-content {
+  padding-bottom: 38px;
+  height: 100%;
+
+  .inner-content {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+nz-footer {
+  color: white;
+  text-align: right;
+  background-color: #00101f;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  padding: 8px;
+}

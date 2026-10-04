@@ -1,0 +1,49 @@
+<div class="container">
+  <div class="banner">
+    <img src="/images/loginBanner.webp" alt="banner">
+  </div>
+  <div class="content">
+    <div class="login-card">
+      <h1>Welcome to Park West</h1>
+      <h2>Please login to continue</h2>
+
+      @if (errorMessage()) {
+      <nz-alert nzType="error" [nzMessage]="errorMessage()!" nzShowIcon class="mb-4" />
+      }
+
+      <form #loginForm="ngForm" (ngSubmit)="onLogin()" novalidate>
+        <div class="form-field">
+          <nz-input-wrapper>
+            <nz-icon nzInputPrefix nzType="user" />
+            <input nz-input name="username" placeholder="Username" required minlength="3" maxlength="20"
+              pattern="[A-Za-z0-9_\.]*" [(ngModel)]="username" />
+          </nz-input-wrapper>
+        </div>
+        <div class="form-field">
+          <nz-input-password>
+            <nz-icon nzInputPrefix nzType="lock" />
+            <input nz-input name="password" required placeholder="Password" [(ngModel)]="password" minlength="3"
+              maxlength="20" pattern="[A-Za-z0-9_\.@]*" />
+          </nz-input-password>
+        </div>
+        <div class="button-container">
+          <button nz-button nzType="primary" [nzLoading]="isLoading()"
+            [disabled]="loginForm.invalid || loginForm.pristine || isLoading()" type="submit">
+            Login
+          </button>
+          <a href="#">Forgot Password?</a>
+        </div>
+        @if(!loginForm.valid && loginForm.dirty) {
+        <nz-alert nzType="error" nzMessage="form is invalid" />
+        }
+      </form>
+      <div class="alerts">
+        <nz-alert nzType="info"
+          nzMessage="{ username: 'accountant1', role: 'accountant', password: 'Accountant@123' }" />
+        <nz-alert nzType="info"
+          nzMessage="{ username: 'specialist1', role: 'inventory_specialist', password: 'Specialist@123' }" />
+        <nz-alert nzType="info" nzMessage="{ username: 'customer1', role: 'customer', password: 'Customer@123' }" />
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<nz-layout class="app-layout">
+  <nz-header>
+    <div class="flex">
+      <div class="logo">
+        <a routerLink="/home" aria-label="Park West Gallery home">
+          <img src="/images/pwglogo.png" alt="Park West Gallery" />
+        </a>
+      </div>
+      <ul nz-menu class="top-nav" nzTheme="dark" nzMode="horizontal">
+        <li nz-menu-item routerLinkActive="ant-menu-item-selected" routerLink="/home">
+          Home
+        </li>
+        @if (auth.isAuthenticated()) {
+        <li nz-menu-item (click)="onLogout()">
+          Logout
+        </li>
+        } @else {
+        <li nz-menu-item routerLinkActive="ant-menu-item-selected" routerLink="/login">
+          Login
+        </li>
+        }
+      </ul>
+    </div>
+
+  </nz-header>
+  <div class="text-info">Park West Gallery | Employee Portal</div>
+
+  <nz-content>
+    <div class="inner-content">
+      <router-outlet></router-outlet>
+    </div>
+  </nz-content>
+
+  <nz-footer class="footer">© 2026 Park West Gallery</nz-footer>
+</nz-layout>
