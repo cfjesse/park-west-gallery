@@ -4,9 +4,9 @@
   # Install dependencies before deploying
   command = "npm install"
   # Netlify Functions directory (relative to base)
-  functions = "netlify/functions"
+  functions = "node-api/netlify/functions"
   # No static publish dir — this is API only
-  publish = "public"
+  publish = "node-api/public"
 
 [functions]
   # Bundle all dependencies inline with esbuild — no native binaries needed

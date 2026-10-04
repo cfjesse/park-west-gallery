@@ -36,6 +36,8 @@ const allowedOrigins = [
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
   /^https:\/\/park-west-gallery\.netlify\.app$/,
   /^https:\/\/.*--park-west-gallery\.netlify\.app$/,
+  /^https:\/\/park-west-api\.netlify\.app$/,
+  /^https:\/\/.*--park-west-api\.netlify\.app$/,
 ];
 if (process.env.ALLOWED_ORIGIN) {
   allowedOrigins.push(process.env.ALLOWED_ORIGIN);
