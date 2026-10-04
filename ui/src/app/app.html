@@ -10,6 +10,21 @@
         <li nz-menu-item routerLinkActive="ant-menu-item-selected" routerLink="/home">
           Home
         </li>
+        @if (auth.userRole() === 'accountant') {
+        <li nz-menu-item routerLinkActive="ant-menu-item-selected" routerLink="/accounting">
+          Accounting
+        </li>
+        }
+        @if (auth.userRole() === 'inventory_specialist') {
+        <li nz-menu-item routerLinkActive="ant-menu-item-selected" routerLink="/inventory">
+          Inventory
+        </li>
+        }
+        @if (auth.userRole() === 'customer') {
+        <li nz-menu-item routerLinkActive="ant-menu-item-selected" routerLink="/customer">
+          Gallery
+        </li>
+        }
         @if (auth.isAuthenticated()) {
         <li nz-menu-item (click)="onLogout()">
           Logout
