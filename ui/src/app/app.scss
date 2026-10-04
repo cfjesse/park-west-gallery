@@ -14,6 +14,39 @@ nz-header {
     width: 100%;
     display: flex;
     justify-content: flex-end;
+
+    &.ant-menu {
+      border-bottom: none;
+
+      .ant-menu-item {
+        position: relative;
+        transition: color 0.3s;
+        border-bottom: 2px solid transparent !important;
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background-color: #B4A062;
+          transform: scaleX(0);
+          transform-origin: center;
+          transition: transform 0.3s ease-out;
+        }
+
+        &:hover,
+        &.ant-menu-item-selected {
+          background-color: transparent !important;
+          color: #B4A062 !important;
+
+          &::after {
+            transform: scaleX(1);
+          }
+        }
+      }
+    }
   }
 
   .nav-link {

@@ -1,4 +1,25 @@
+@keyframes errorSlideIn {
+  from {
+    opacity: 0;
+    height: 0px;
+
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    height: 40px;
+    transform: translateY(0);
+  }
+}
+
+.error-alert {
+  overflow: hidden;
+  animation: errorSlideIn 250ms ease-out;
+}
+
 .container {
+
   .banner {
     img {
       width: 100%;
@@ -30,6 +51,7 @@
       background-color: white;
 
       form {
+
         button {
           min-width: 120px;
         }

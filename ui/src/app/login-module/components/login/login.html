@@ -8,22 +8,24 @@
       <h2>Please login to continue</h2>
 
       @if (errorMessage()) {
-      <nz-alert nzType="error" [nzMessage]="errorMessage()!" nzShowIcon class="mb-4" />
+      <nz-alert nzType="error" [nzMessage]="errorMessage()!" nzShowIcon class="mb-4 error-alert" />
       }
 
-      <form #loginForm="ngForm" (ngSubmit)="onLogin()" novalidate>
+      @if (!loginForm.valid && loginForm.dirty && showAlerts() === true) {
+      <nz-alert nzType="error" nzMessage="Login details are not valid" nzShowIcon class="mb-4 error-alert" />
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()" novalidate>
         <div class="form-field">
           <nz-input-wrapper>
             <nz-icon nzInputPrefix nzType="user" />
-            <input nz-input name="username" placeholder="Username" required minlength="3" maxlength="20"
-              pattern="[A-Za-z0-9_\.]*" [(ngModel)]="username" />
+            <input nz-input name="username" placeholder="Username" formControlName="username" />
           </nz-input-wrapper>
         </div>
         <div class="form-field">
           <nz-input-password>
             <nz-icon nzInputPrefix nzType="lock" />
-            <input nz-input name="password" required placeholder="Password" [(ngModel)]="password" minlength="3"
-              maxlength="20" pattern="[A-Za-z0-9_\.@]*" />
+            <input nz-input name="password" placeholder="Password" formControlName="password" />
           </nz-input-password>
         </div>
         <div class="button-container">
@@ -33,9 +35,6 @@
           </button>
           <a href="#">Forgot Password?</a>
         </div>
-        @if(!loginForm.valid && loginForm.dirty) {
-        <nz-alert nzType="error" nzMessage="form is invalid" />
-        }
       </form>
       <div class="alerts">
         <nz-alert nzType="info"
