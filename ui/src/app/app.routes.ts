@@ -12,19 +12,19 @@ export const routes: Routes = [
   {
     path: 'accounting',
     title: 'Accounting | Park West',
-    loadComponent: () => import('./accounting-module/components/home/home').then((m) => m.Home),
+    loadComponent: () => import('./pages/accounting/components/home/home').then((m) => m.Home),
     canActivate: [roleGuard('accountant')],
   },
   {
     path: 'inventory',
     title: 'Inventory | Park West',
-    loadComponent: () => import('./inventory-module/components/home/home').then((m) => m.Home),
+    loadComponent: () => import('./pages/inventory/components/home/home').then((m) => m.Home),
     canActivate: [roleGuard('inventory_specialist')],
   },
   {
     path: 'customer',
     title: 'Gallery | Park West',
-    loadComponent: () => import('./customer-module/components/home/home').then((m) => m.Home),
+    loadComponent: () => import('./pages/customer/components/home/home').then((m) => m.Home),
     canActivate: [roleGuard('customer')],
   },
   { path: '**', redirectTo: '/home' },

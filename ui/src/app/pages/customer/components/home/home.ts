@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MasterDetails } from '../../../shared/components/master-details/master-details';
+import { MasterDetails } from '../../../../shared/components/master-details/master-details';
 
 @Component({
   imports: [MasterDetails],
