@@ -6,7 +6,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
-import { AuthenticationService } from '../../../services/authentication';
+import { AuthenticationService } from '../../services/authentication';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, tap } from 'rxjs';
 

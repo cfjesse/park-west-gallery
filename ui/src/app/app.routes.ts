@@ -6,7 +6,7 @@ export const routes: Routes = [
   {
     path: 'login',
     title: 'Login | Park West',
-    loadComponent: () => import('./login-module/components/login/login').then((m) => m.Login),
+    loadComponent: () => import('./pages/login/login').then((m) => m.Login),
   },
   { path: 'home', loadChildren: () => import('./pages/welcome/welcome.routes').then((m) => m.WELCOME_ROUTES) },
   {
