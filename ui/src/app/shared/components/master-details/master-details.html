@@ -1,5 +1,11 @@
-<nz-table #basicTable [nzData]="inventory()" [nzFrontPagination]="false" [nzLoading]="isLoading()"
-  [nzTotal]="total()" [nzPageIndex]="pageIndex()" [nzPageSize]="pageSize()" [nzShowSizeChanger]="true"
+@if (userRole === 'inventory_specialist') {
+<div class="create-action-bar">
+  <button nz-button nzType="primary" (click)="onAction('create', null)">Create Record</button>
+</div>
+}
+
+<nz-table #basicTable [nzData]="inventory()" [nzFrontPagination]="false" [nzLoading]="isLoading()" [nzTotal]="total()"
+  [nzPageIndex]="pageIndex()" [nzPageSize]="pageSize()" [nzShowSizeChanger]="true"
   [nzPageSizeOptions]="[10, 20, 50, 100]" (nzPageIndexChange)="onPageIndexChange($event)"
   (nzPageSizeChange)="onPageSizeChange($event)">
   <thead>
@@ -36,19 +42,15 @@
       }
       <td>{{ data.width_in }} x {{ data.height_in }}</td>
       <td class="actions">
-        @if (userRole === 'accountant') {
+        @if (userRole === 'inventory_specialist' || userRole === 'accountant') {
         <button nz-button (click)="onAction('view', data)">View</button>
         <button [disabled]="data.status === 'sold'" nz-button (click)="onAction('edit', data)">Edit</button>
-        }
-
         @if (userRole === 'inventory_specialist') {
-        <button nz-button (click)="onAction('view', data)">View</button>
-        <button [disabled]="data.status === 'sold'" nz-button (click)="onAction('edit', data)">Edit</button>
-        <button [disabled]="data.status === 'sold'" nz-button nzDanger
-          (click)="onAction('delete', data)">Delete</button>
+        <button [disabled]="data.status === 'sold'" nz-button nzDanger (click)="onAction('delete', data)">Delete</button>
+        }
         }
 
-        @if (userRole === 'customer') {
+        @else if (userRole === 'customer') {
         <button nz-button (click)="onAction('view', data)">View</button>
         <button nz-button nzType="primary" [disabled]="data.status !== 'ready_for_sale'"
           (click)="onAction('buy', data)">
@@ -66,7 +68,79 @@
   [nzCancelText]="action() === 'view' ? 'Close' : 'Cancel'" [nzMaskClosable]="!isSaving()" nzWidth="640px"
   (nzOnCancel)="onModalCancel()" (nzOnOk)="onModalOk()">
   <ng-container *nzModalContent>
-    @if (modalData(); as item) {
+    @if (action() === 'create') {
+    <form nz-form [formGroup]="createForm" nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>Title</nz-form-label>
+        <nz-form-control nzErrorTip="Please enter a title">
+          <input nz-input formControlName="title" placeholder="Title" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Artist</nz-form-label>
+        <nz-form-control nzErrorTip="Please enter an artist name">
+          <input nz-input formControlName="artist_name" placeholder="Artist Name" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Media</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="media">
+                @for (opt of mediaOptions; track opt) {
+                <nz-option [nzValue]="opt" [nzLabel]="formatLabel(opt) | titlecase" />
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Style</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="style">
+                @for (opt of styleOptions; track opt) {
+                <nz-option [nzValue]="opt" [nzLabel]="formatLabel(opt) | titlecase" />
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="8">
+          <nz-form-item>
+            <nz-form-label nzRequired>Width (in)</nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="width_in" [nzMin]="1" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="8">
+          <nz-form-item>
+            <nz-form-label nzRequired>Height (in)</nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="height_in" [nzMin]="1" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="8">
+          <nz-form-item>
+            <nz-form-label nzRequired>Price</nz-form-label>
+            <nz-form-control nzErrorTip="Min $1,000, Max $20,000">
+              <nz-input-number formControlName="price" [nzMin]="1000" [nzMax]="20000" [nzFormatter]="formatterDollar"
+                [nzParser]="parserDollar" style="width: 100%" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+    }
+    @else if (modalData(); as item) {
     @switch (action()) {
 
     <!-- VIEW -->

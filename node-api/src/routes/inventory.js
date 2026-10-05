@@ -181,7 +181,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.post(
   '/',
   authenticateToken,
-  requireRole('accountant', 'inventory_specialist'),
+  requireRole('inventory_specialist'),
   async (req, res) => {
     const errors = validateInventoryBody(req.body, true);
     if (errors.length > 0) {
@@ -260,7 +260,7 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
-  requireRole('accountant'),
+  requireRole('inventory_specialist'),
   async (req, res) => {
     const { rows: existingRows } = await db.execute({ sql: 'SELECT * FROM inventory WHERE id = ?', args: [req.params.id] });
     if (!existingRows[0]) {

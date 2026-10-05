@@ -28,7 +28,7 @@ import {
 } from '../../../services/inventory-api';
 import { DiscountedPricePipe } from '../../pipes/discounted-price.pipe';
 
-export type InventoryAction = 'view' | 'edit' | 'delete' | 'buy';
+export type InventoryAction = 'view' | 'edit' | 'delete' | 'buy' | 'create';
 
 // Must match VALID_* lists in node-api/src/routes/inventory.js
 const MEDIA_OPTIONS: Media[] = ['acrylic', 'oils', 'pastel', 'charcoal', 'pencil', 'mixed_media', 'watercolor', 'gouache', 'ink', 'digital'];
@@ -98,6 +98,23 @@ export class MasterDetails implements OnInit {
     status: this.fb.control<InventoryStatus>('ready_for_sale', Validators.required),
   });
 
+  readonly createForm = this.fb.group({
+    artist_name: ['', [Validators.required, Validators.maxLength(100)]],
+    title: ['', [Validators.required, Validators.maxLength(150)]],
+    media: this.fb.control<Media>('acrylic', Validators.required),
+    style: this.fb.control<Style>('abstract', Validators.required),
+    width_in: [1, [Validators.required, Validators.min(1)]],
+    height_in: [1, [Validators.required, Validators.min(1)]],
+    status: this.fb.control<InventoryStatus>('ready_for_sale', Validators.required),
+    price: [1000, [Validators.required, Validators.min(1000), Validators.max(20000)]],
+  });
+
+  formatterDollar = (value: number): string => `$ ${value}`;
+  parserDollar = (value: string): number => {
+    const parsed = parseFloat(value.replace(/[\$\s,]/g, ''));
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
   readonly modalTitle = computed(() => {
     const item = this.modalData();
     const labels: Record<InventoryAction, string> = {
@@ -105,6 +122,7 @@ export class MasterDetails implements OnInit {
       edit: 'Edit Artwork',
       delete: 'Delete Artwork',
       buy: 'Purchase Request',
+      create: 'Create Artwork',
     };
     const a = this.action();
     return a ? `${labels[a]}${item ? ' — ' + item.title : ''}` : '';
@@ -114,6 +132,7 @@ export class MasterDetails implements OnInit {
   readonly okText = computed(() => {
     switch (this.action()) {
       case 'edit': return 'Save';
+      case 'create': return 'Create';
       case 'delete': return 'Delete';
       case 'buy': return 'Confirm Purchase';
       default: return null;
@@ -156,19 +175,31 @@ export class MasterDetails implements OnInit {
   }
 
   get activeForm() {
+    if (this.action() === 'create') return this.createForm;
     return this.userRole === 'accountant' ? this.accountantForm : this.specialistForm;
   }
 
   isOkDisabled(): boolean {
-    return this.action() === 'edit' && this.activeForm.invalid;
+    return (this.action() === 'edit' || this.action() === 'create') && this.activeForm.invalid;
   }
 
-  onAction(action: InventoryAction, item: InventoryItem) {
+  onAction(action: InventoryAction, item: InventoryItem | null) {
     this.errorMessages.set([]);
     this.modalData.set(item);
     this.action.set(action);
 
-    if (action === 'edit') {
+    if (action === 'create') {
+      this.createForm.reset({
+        media: 'acrylic',
+        style: 'abstract',
+        status: 'ready_for_sale',
+        width_in: 1,
+        height_in: 1,
+        price: 1000
+      });
+    }
+
+    if (action === 'edit' && item) {
       if (this.userRole === 'accountant') {
         this.accountantForm.reset({
           price: item.price,
@@ -194,7 +225,7 @@ export class MasterDetails implements OnInit {
   onModalOk() {
     const item = this.modalData();
     const action = this.action();
-    if (!item || !action || action === 'view') {
+    if (!action || action === 'view' || (!item && action !== 'create')) {
       this.closeModal();
       return;
     }
@@ -209,14 +240,34 @@ export class MasterDetails implements OnInit {
           return;
         }
         const payload = this.buildEditPayload();
-        request$ = this.inventoryService.updateItem(item.id, payload);
+        request$ = this.inventoryService.updateItem(item!.id, payload);
+        break;
+      }
+      case 'create': {
+        const form = this.activeForm;
+        if (form.invalid) {
+          form.markAllAsTouched();
+          return;
+        }
+        const v = this.createForm.getRawValue();
+        const payload = {
+          artist_name: v.artist_name.trim(),
+          title: v.title.trim(),
+          media: v.media,
+          style: v.style,
+          width_in: v.width_in,
+          height_in: v.height_in,
+          status: v.status,
+          price: v.price,
+        };
+        request$ = this.inventoryService.createItem(payload);
         break;
       }
       case 'buy':
-        request$ = this.inventoryService.updateItem(item.id, { status: 'pending' });
+        request$ = this.inventoryService.updateItem(item!.id, { status: 'pending' });
         break;
       case 'delete':
-        request$ = this.inventoryService.deleteItem(item.id);
+        request$ = this.inventoryService.deleteItem(item!.id);
         break;
     }
 
