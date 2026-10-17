@@ -6,19 +6,27 @@ A full-stack, enterprise-grade artwork inventory and gallery management applicat
 
 ## Table of Contents
 
-- [Overview & Key Features](#overview--key-features)
-- [Architecture & Tech Stack](#architecture--tech-stack)
-- [Project Structure](#project-structure)
-- [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
-- [Demo Credentials](#demo-credentials)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [1. Backend Setup (`node-api`)](#1-backend-setup-node-api)
-  - [2. Frontend Setup (`ui`)](#2-frontend-setup-ui)
-- [API Documentation & Endpoints](#api-documentation--endpoints)
-- [Environment Configuration](#environment-configuration)
-- [Testing](#testing)
-- [Deployment](#deployment)
+- [Park West Gallery — Artwork Inventory \& Gallery System](#park-west-gallery--artwork-inventory--gallery-system)
+  - [Table of Contents](#table-of-contents)
+  - [Overview \& Key Features](#overview--key-features)
+  - [Architecture \& Tech Stack](#architecture--tech-stack)
+  - [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
+  - [Demo Credentials](#demo-credentials)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [1. Backend Setup (`node-api`)](#1-backend-setup-node-api)
+    - [2. Frontend Setup (`ui`)](#2-frontend-setup-ui)
+  - [API Documentation \& Endpoints](#api-documentation--endpoints)
+    - [Core Routes](#core-routes)
+      - [Authentication](#authentication)
+      - [Inventory Management](#inventory-management)
+      - [Health Check](#health-check)
+  - [Environment Configuration](#environment-configuration)
+    - [Backend (`node-api/.env`)](#backend-node-apienv)
+  - [Testing](#testing)
+    - [Integration \& API Test Suite](#integration--api-test-suite)
+    - [Frontend Unit Tests](#frontend-unit-tests)
+  - [Deployment](#deployment)
 
 ---
 
@@ -37,7 +45,6 @@ A full-stack, enterprise-grade artwork inventory and gallery management applicat
 
 ## Architecture & Tech Stack
 
-```mermaid
 graph TD
     Client[Web Browser / Client]
     
