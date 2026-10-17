@@ -16,7 +16,6 @@ export class App {
   private readonly router = inject(Router);
 
   protected onLogout(): void {
-    // The session is cleared synchronously; the server notification is fire-and-forget.
     this.auth.logout().subscribe();
     void this.router.navigate(['/home']);
   }

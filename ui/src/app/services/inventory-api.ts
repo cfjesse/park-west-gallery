@@ -22,37 +22,30 @@ export class InventoryApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiBaseUrl}/api/inventory`;
 
-  /** GET /api/inventory — paginated + filtered */
   getInventory(query: InventoryQueryParams = { page: 1, limit: 50 }): Observable<InventoryResponse> {
     return this.http.get<InventoryResponse>(this.apiUrl, { params: this.toParams(query) });
   }
 
-  /** GET /api/inventory/all — all items (filters only, no pagination) */
   getAllInventory(query: Omit<InventoryQueryParams, 'page' | 'limit'> = {}): Observable<InventoryAllResponse> {
     return this.http.get<InventoryAllResponse>(`${this.apiUrl}/all`, { params: this.toParams(query) });
   }
 
-  /** GET /api/inventory/:id */
   getItemById(id: string): Observable<ItemResponse> {
     return this.http.get<ItemResponse>(`${this.apiUrl}/${id}`);
   }
 
-  /** POST /api/inventory — Accountant & Specialist */
   createItem(item: CreateInventoryPayload): Observable<MutationResponse> {
     return this.http.post<MutationResponse>(this.apiUrl, item);
   }
 
-  /** PUT /api/inventory/:id — the backend enforces which fields each role may change */
   updateItem(id: string, updates: InventoryUpdate): Observable<MutationResponse> {
     return this.http.put<MutationResponse>(`${this.apiUrl}/${id}`, updates);
   }
 
-  /** DELETE /api/inventory/:id — Accountant only */
   deleteItem(id: string): Observable<MutationResponse> {
     return this.http.delete<MutationResponse>(`${this.apiUrl}/${id}`);
   }
 
-  /** Builds HttpParams, skipping undefined/null/empty values */
   private toParams(query: InventoryQueryParams): HttpParams {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(query)) {
