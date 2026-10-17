@@ -6,27 +6,26 @@ A full-stack, enterprise-grade artwork inventory and gallery management applicat
 
 ## Table of Contents
 
-- [Park West Gallery — Artwork Inventory \& Gallery System](#park-west-gallery--artwork-inventory--gallery-system)
-  - [Table of Contents](#table-of-contents)
-  - [Overview \& Key Features](#overview--key-features)
-  - [Architecture \& Tech Stack](#architecture--tech-stack)
-  - [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
-  - [Demo Credentials](#demo-credentials)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [1. Backend Setup (`node-api`)](#1-backend-setup-node-api)
-    - [2. Frontend Setup (`ui`)](#2-frontend-setup-ui)
-  - [API Documentation \& Endpoints](#api-documentation--endpoints)
-    - [Core Routes](#core-routes)
-      - [Authentication](#authentication)
-      - [Inventory Management](#inventory-management)
-      - [Health Check](#health-check)
-  - [Environment Configuration](#environment-configuration)
-    - [Backend (`node-api/.env`)](#backend-node-apienv)
-  - [Testing](#testing)
-    - [Integration \& API Test Suite](#integration--api-test-suite)
-    - [Frontend Unit Tests](#frontend-unit-tests)
-  - [Deployment](#deployment)
+- [Overview & Key Features](#overview--key-features)
+- [Architecture & Tech Stack](#architecture--tech-stack)
+- [Project Structure](#project-structure)
+- [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
+- [Demo Credentials](#demo-credentials)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [1. Backend Setup (`node-api`)](#1-backend-setup-node-api)
+  - [2. Frontend Setup (`ui`)](#2-frontend-setup-ui)
+- [API Documentation & Endpoints](#api-documentation--endpoints)
+  - [Core Routes](#core-routes)
+    - [Authentication](#authentication)
+    - [Inventory Management](#inventory-management)
+    - [Health Check](#health-check)
+- [Environment Configuration](#environment-configuration)
+  - [Backend (`node-api/.env`)](#backend-node-apienv)
+- [Testing](#testing)
+  - [Integration & API Test Suite](#integration--api-test-suite)
+  - [Frontend Unit Tests](#frontend-unit-tests)
+- [Deployment](#deployment)
 
 ---
 
@@ -45,32 +44,33 @@ A full-stack, enterprise-grade artwork inventory and gallery management applicat
 
 ## Architecture & Tech Stack
 
+```mermaid
 graph TD
-    Client[Web Browser / Client]
+    Client["Web Browser / Client"]
     
-    subgraph Frontend [Angular 22 SPA (/ui)]
-        AuthGuard[Role & Auth Guards]
-        Interceptor[JWT Auth Interceptor]
-        UIComp[Standalone Components & NG-ZORRO]
+    subgraph Frontend["Angular 22 SPA (/ui)"]
+        AuthGuard["Role & Auth Guards"]
+        Interceptor["JWT Auth Interceptor"]
+        UIComp["Standalone Components & NG-ZORRO"]
     end
 
-    subgraph Netlify [Netlify Cloud Platform]
+    subgraph Netlify["Netlify Cloud Platform"]
         Redirects["API Rewrite Proxy (/api/*)"]
         FunctionHandler["Netlify Function (/netlify/functions/api)"]
     end
 
-    subgraph Backend [Express 5 API (/node-api)]
-        AuthMiddleware[JWT & RBAC Middleware]
+    subgraph Backend["Express 5 API (/node-api)"]
+        AuthMiddleware["JWT & RBAC Middleware"]
         SwaggerDocs["OpenAPI / Swagger (/api/docs)"]
-        Routes[Auth & Inventory Routes]
-        DBLayer[Turso LibSQL Client / In-Memory Fallback]
+        Routes["Auth & Inventory Routes"]
+        DBLayer["Turso LibSQL Client / In-Memory Fallback"]
     end
 
-    Client -->|Loads UI| Frontend
-    Frontend -->|HTTP Requests| Redirects
+    Client -->|"Loads UI"| Frontend
+    Frontend -->|"HTTP Requests"| Redirects
     Redirects --> FunctionHandler
     FunctionHandler --> Backend
-    Client -->|Local Dev Direct| Backend
+    Client -->|"Local Dev Direct"| Backend
     Backend --> AuthMiddleware
     AuthMiddleware --> Routes
     Routes --> DBLayer
@@ -130,14 +130,14 @@ The application enforces fine-grained permissions both in the Angular routing la
 
 | Feature / Action | Customer (`customer`) | Accountant (`accountant`) | Inventory Specialist (`inventory_specialist`) |
 | :--- | :---: | :---: | :---: |
-| **Browse / View Gallery** |  Yes |  Yes |  Yes |
-| **Filter by Medium / Style / Artist** |  Yes |  Yes |  Yes |
-| **Submit Purchase Request (`pending`)** |  Yes |  No |  No |
-| **Modify Pricing & Discounts** |  No |  Yes |  Yes |
-| **Update Item Status (`ready_for_sale`, etc.)** |  No |  Yes |  Yes |
-| **Create New Artworks** |  No |  No |  Yes |
-| **Edit Art Specs (Dimensions, Media, Title)** |  No |  No |  Yes |
-| **Delete Artwork Records** |  No |  No |  Yes |
+| **Browse / View Gallery** | Yes | Yes | Yes |
+| **Filter by Medium / Style / Artist** | Yes | Yes | Yes |
+| **Submit Purchase Request (`pending`)** | Yes | No | No |
+| **Modify Pricing & Discounts** | No | Yes | Yes |
+| **Update Item Status (`ready_for_sale`, etc.)** | No | Yes | Yes |
+| **Create New Artworks** | No | No | Yes |
+| **Edit Art Specs (Dimensions, Media, Title)** | No | No | Yes |
+| **Delete Artwork Records** | No | No | Yes |
 
 ---
 
@@ -240,9 +240,10 @@ Interactive Swagger UI documentation is available at `http://localhost:3000/api/
   - `style` *(enum: `abstract`, `realism`, `impressionism`, `surrealism`, `art_deco`, `expressionism`, `cubism`, `minimalism`, `pop_art`, `baroque`)*
   - `status` *(enum: `ready_for_sale`, `pending`, `sold`)*
   - `artist_name` *(string search)*
+- `GET /api/inventory/all`: Retrieve all artwork records without pagination (supports the same filter query parameters).
 - `GET /api/inventory/:id`: Retrieve single artwork by UUID.
 - `POST /api/inventory`: Create new artwork (*Requires `inventory_specialist`*).
-- `PUT /api/inventory/:id`: Update artwork (*Permissions validated by role*).
+- `PUT /api/inventory/:id`: Update artwork (*Permissions validated by role: specialist, accountant, or customer purchase request*).
 - `DELETE /api/inventory/:id`: Remove artwork (*Requires `inventory_specialist`*).
 
 #### Health Check
@@ -256,7 +257,7 @@ Interactive Swagger UI documentation is available at `http://localhost:3000/api/
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `PORT` | Local server listener port | `3000` |
-| `JWT_SECRET` | Secret key for signing authorization tokens | Internal default |
+| `JWT_SECRET` | Secret key for signing authorization tokens | `park-west-secure-jwt-secret-key-2026` |
 | `JWT_EXPIRES_IN` | Token duration | `8h` |
 | `NODE_ENV` | Environment mode (`development` / `production`) | `development` |
 | `TURSO_DATABASE_URL` | *(Optional)* Turso database connection URL (`libsql:...`) | In-memory fallback |
@@ -269,6 +270,9 @@ Interactive Swagger UI documentation is available at `http://localhost:3000/api/
 
 ### Integration & API Test Suite
 The API includes an automated integration test script testing authentication, role-based route blocking, pagination, validation, and CRUD operations:
+
+> **Note**: Ensure the backend server is running (`cd node-api && npm run dev`) before executing tests.
+
 ```bash
 cd node-api
 node test-api.js
@@ -287,7 +291,7 @@ npm test
 
 The repository is configured for deployment on **Netlify**:
 
-- **Frontend**: Built via `ng build` in `ui/`, outputs to `dist/intenvtory-system/browser`.
+- **Frontend**: Built via `npm run build` in `ui/`, outputs to `dist/intenvtory-system/browser`.
 - **Backend**: Managed via `netlify.toml` deploying `node-api/netlify/functions/api.js` as a serverless Netlify function with esbuild bundling.
 - **Routing**: Netlify redirects rewrite `/api/*` to the serverless function, allowing unified origin requests.
 
